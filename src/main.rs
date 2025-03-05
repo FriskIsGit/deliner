@@ -21,7 +21,7 @@ fn main() {
 
     let reader = BufReader::new(file);
     let output_path = assemble_output_path(input_path);
-
+    println!("Output path: {}", output_path.display());
     let output_file = match File::create(&output_path) {
         Ok(file) => file,
         Err(e) => {
@@ -32,7 +32,6 @@ fn main() {
 
     let mut writer = BufWriter::new(output_file);
 
-    // Read the input file line by line
     for maybeLine in reader.lines() {
         let Ok(line) = maybeLine else {
             eprintln!("Error reading line {}", maybeLine.unwrap_err());
