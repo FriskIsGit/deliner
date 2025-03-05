@@ -1,4 +1,4 @@
-use std::{env, string};
+use std::{env};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -10,7 +10,7 @@ fn main() {
     if args.len() != 2 {
         println!("Deliner utility. Creates a trimmed copy with empty lines/new lines removed.");
         println!("Usage: {} <path>", args[0]);
-        exit(1);
+        return;
     }
 
     let input_path = &args[1];
