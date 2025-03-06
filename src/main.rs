@@ -27,43 +27,35 @@ fn main() {
 
     let copy = if args.len() > 2 && args[2] == "--copy" { true } else { false };
 
-    let output_file;
-    if copy {
+    let reader = BufReader::new(input_file);
+    let lines: Vec<String> = reader.lines()
+        .filter_map(Result::ok)
+        .filter(|line| !line.trim().is_empty())
+        .collect();
+
+    let open_result = if copy {
         let output_path = assemble_output_path(input_path);
         println!("Output path: {}", output_path.display());
-        match File::create(&output_path) {
-            Ok(file) => output_file = file,
-            Err(e) => {
-                eprintln!("Error creating output file: {}", e);
-                exit(1);
-            }
-        };
+        File::create(output_path)
     } else {
-        match OpenOptions::new().write(true).open(input_path) {
-            Ok(file) => output_file = file,
-            Err(e) => {
-                eprintln!("Error opening input file: {}", e);
-                exit(1);
-            }
-        };
+        File::create(input_path)
     };
 
-    let reader = BufReader::new(input_file);
-    let mut writer = BufWriter::new(output_file);
+    let Ok(output_file) = open_result else {
+        eprintln!("Error creating output file: {}", open_result.unwrap_err());
+        exit(1);
+    };
 
-    for (i, maybeLine) in reader.lines().into_iter().enumerate() {
-        let Ok(line) = maybeLine else {
-            eprintln!("Error reading line {}", maybeLine.unwrap_err());
-            exit(1);
-        };
-        if line.trim().is_empty() {
-            continue
-        }
+    let mut writer = BufWriter::new(output_file);
+    for (i, line) in lines.iter().enumerate() {
         if i < PRINT_LINES_MAX {
-            println!("{:4}|{line}", i+1);
+            println!("{:4} | {line}", i+1);
         }
 
         writeln!(writer, "{line}").expect("Failed to write");
+    }
+    if lines.len() > PRINT_LINES_MAX {
+        println!("... ({} lines remaining)", lines.len() - PRINT_LINES_MAX);
     }
 
     writer.flush().expect("Final flush failed!");
